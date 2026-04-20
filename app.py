@@ -4,10 +4,26 @@ import joblib
 import pandas as pd
 
 # ---------- CONFIG ----------
-st.set_page_config(page_title="Loan AI System", page_icon="🏦", layout="centered")
+st.set_page_config(
+    page_title="Loan AI Pro",
+    page_icon="🏦",
+    layout="centered"
+)
 
-st.title("🏦 Loan Approval AI System")
-st.write("Smart ML-based loan prediction with confidence score")
+# ---------- UI STYLE ----------
+st.markdown("""
+    <style>
+        .main {
+            background-color: #0f1117;
+        }
+        h1, h2, h3 {
+            color: #00ffcc;
+        }
+    </style>
+""", unsafe_allow_html=True)
+
+st.title("🏦 Loan Approval AI - PRO SYSTEM")
+st.write("Smart AI-powered loan prediction with risk analysis")
 
 # ---------- LOAD MODEL ----------
 model = joblib.load("model.pkl")
@@ -15,7 +31,7 @@ model = joblib.load("model.pkl")
 # ---------- FORM ----------
 with st.form("loan_form"):
 
-    st.subheader("Customer Information")
+    st.subheader("Customer Details")
 
     no_of_dependents = st.number_input("No of Dependents", min_value=0, step=1)
 
@@ -34,6 +50,10 @@ with st.form("loan_form"):
     bank_asset_value = st.number_input("Bank Asset Value")
 
     submit = st.form_submit_button("🚀 Predict Loan Status")
+
+# ---------- RESET ----------
+if st.button("🔄 Reset Form"):
+    st.experimental_rerun()
 
 # ---------- PREDICTION ----------
 if submit:
@@ -54,25 +74,31 @@ if submit:
 
     pred = model.predict(input_df)[0]
 
-    # probability (safe handling)
     try:
         prob = model.predict_proba(input_df)[0][1]
     except:
         prob = 0.5
 
+    risk_score = prob * 100
+
     st.markdown("---")
+    st.markdown("## 📊 AI Decision Report")
 
-    # ---------- RESULT DASHBOARD ----------
-    if pred == 1 or pred == "Approved":
-        st.success("✅ LOAN APPROVED")
-        st.progress(int(prob * 100))
-        st.metric("Confidence Score", f"{prob*100:.2f}%")
+    st.markdown("### 📈 Risk Probability")
+    st.progress(int(risk_score))
+    st.metric("Confidence Score", f"{risk_score:.2f}%")
 
-        st.info("📊 Reason: Strong financial profile, high repayment capability")
+    if risk_score >= 70:
+        st.success("🟢 LOW RISK CUSTOMER")
+        st.write("✔ Strong financial profile")
+        st.write("✔ High repayment capability")
+
+    elif risk_score >= 40:
+        st.warning("🟡 MEDIUM RISK CUSTOMER")
+        st.write("⚠ Mixed financial signals")
+        st.write("⚠ Manual review recommended")
 
     else:
-        st.error("❌ LOAN REJECTED")
-        st.progress(int(prob * 100))
-        st.metric("Confidence Score", f"{prob*100:.2f}%")
-
-        st.warning("📊 Reason: High risk profile, low repayment capability")
+        st.error("🔴 HIGH RISK CUSTOMER")
+        st.write("❌ High default probability")
+        st.write("❌ Weak financial profile")
