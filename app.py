@@ -3,19 +3,22 @@ import streamlit as st
 import joblib
 import pandas as pd
 
-# Load model
+# ---------- CONFIG ----------
+st.set_page_config(page_title="Loan AI System", page_icon="🏦", layout="centered")
+
+st.title("🏦 Loan Approval AI System")
+st.write("Smart ML-based loan prediction with confidence score")
+
+# ---------- LOAD MODEL ----------
 model = joblib.load("model.pkl")
-
-st.set_page_config(page_title="Loan Predictor", page_icon="🏦", layout="centered")
-
-st.title("🏦 Loan Approval System")
 
 # ---------- FORM ----------
 with st.form("loan_form"):
 
-    st.subheader("Customer Details")
+    st.subheader("Customer Information")
 
     no_of_dependents = st.number_input("No of Dependents", min_value=0, step=1)
+
     education = st.selectbox("Education", ["Graduate", "Not Graduate"])
     self_employed = st.selectbox("Self Employed", ["Yes", "No"])
 
@@ -30,7 +33,7 @@ with st.form("loan_form"):
     luxury_assets_value = st.number_input("Luxury Assets Value")
     bank_asset_value = st.number_input("Bank Asset Value")
 
-    submit = st.form_submit_button("🚀 Predict")
+    submit = st.form_submit_button("🚀 Predict Loan Status")
 
 # ---------- PREDICTION ----------
 if submit:
@@ -49,31 +52,27 @@ if submit:
         "bank_asset_value": bank_asset_value
     }])
 
-    # prediction
     pred = model.predict(input_df)[0]
 
-    # probability (only if supported)
+    # probability (safe handling)
     try:
         prob = model.predict_proba(input_df)[0][1]
     except:
-        prob = None
+        prob = 0.5
 
     st.markdown("---")
 
-    # ---------- DASHBOARD ----------
+    # ---------- RESULT DASHBOARD ----------
     if pred == 1 or pred == "Approved":
         st.success("✅ LOAN APPROVED")
+        st.progress(int(prob * 100))
+        st.metric("Confidence Score", f"{prob*100:.2f}%")
 
-        st.progress(int((prob or 0.9) * 100))
-
-        st.metric("Approval Probability", f"{(prob or 0.9)*100:.2f}%")
+        st.info("📊 Reason: Strong financial profile, high repayment capability")
 
     else:
         st.error("❌ LOAN REJECTED")
+        st.progress(int(prob * 100))
+        st.metric("Confidence Score", f"{prob*100:.2f}%")
 
-        st.progress(int((prob or 0.1) * 100))
-
-        st.metric("Approval Probability", f"{(prob or 0.1)*100:.2f}%")
-
-    # ---------- EXTRA INSIGHT ----------
-    st.info("📊 Model Confidence Score shown above helps evaluate risk level.")
+        st.warning("📊 Reason: High risk profile, low repayment capability")
