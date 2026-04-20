@@ -1,35 +1,62 @@
-import streamlit as st
-import pandas as pd
-import joblib
 
-# ================= LOAD MODEL =================
+import streamlit as st
+import joblib
+import pandas as pd
+
+# ---------- CONFIG ----------
+st.set_page_config(
+    page_title="Loan AI Pro",
+    page_icon="🏦",
+    layout="centered"
+)
+
+# ---------- UI STYLE ----------
+st.markdown("""
+    <style>
+        .main {
+            background-color: #0f1117;
+        }
+        h1, h2, h3 {
+            color: #00ffcc;
+        }
+    </style>
+""", unsafe_allow_html=True)
+
+st.title("🏦 Loan Approval AI - PRO SYSTEM")
+st.write("Smart AI-powered loan prediction with risk analysis")
+
+# ---------- LOAD MODEL ----------
 model = joblib.load("model.pkl")
 
-# ================= PAGE CONFIG =================
-st.set_page_config(page_title="Loan Approval System", layout="centered")
+# ---------- FORM ----------
+with st.form("loan_form"):
 
-st.title("🏦 Loan Approval Prediction System")
-st.markdown("AI-based loan risk analysis dashboard 🚀")
+    st.subheader("Customer Details")
 
-# ================= INPUT FORM =================
-st.sidebar.header("Enter Customer Details")
+    no_of_dependents = st.number_input("No of Dependents", min_value=0, step=1)
 
-no_of_dependents = st.sidebar.number_input("No of Dependents", 0, 10, 2)
-education = st.sidebar.selectbox("Education", ["Graduate", "Not Graduate"])
-self_employed = st.sidebar.selectbox("Self Employed", ["Yes", "No"])
+    education = st.selectbox("Education", ["Graduate", "Not Graduate"])
+    self_employed = st.selectbox("Self Employed", ["Yes", "No"])
 
-income_annum = st.sidebar.number_input("Annual Income", 0, 10000000, 5000000)
-loan_amount = st.sidebar.number_input("Loan Amount", 0, 50000000, 10000000)
-loan_term = st.sidebar.number_input("Loan Term (years)", 1, 30, 10)
-cibil_score = st.sidebar.number_input("CIBIL Score", 300, 900, 700)
+    income_annum = st.number_input("Annual Income")
+    loan_amount = st.number_input("Loan Amount")
+    loan_term = st.number_input("Loan Term (years)")
 
-residential_assets_value = st.sidebar.number_input("Residential Assets", 0, 50000000, 2000000)
-commercial_assets_value = st.sidebar.number_input("Commercial Assets", 0, 50000000, 1000000)
-luxury_assets_value = st.sidebar.number_input("Luxury Assets", 0, 50000000, 3000000)
-bank_asset_value = st.sidebar.number_input("Bank Assets", 0, 50000000, 1000000)
+    cibil_score = st.number_input("CIBIL Score")
 
-# ================= PREDICTION =================
-if st.button("🚀 Predict Loan Status"):
+    residential_assets_value = st.number_input("Residential Assets Value")
+    commercial_assets_value = st.number_input("Commercial Assets Value")
+    luxury_assets_value = st.number_input("Luxury Assets Value")
+    bank_asset_value = st.number_input("Bank Asset Value")
+
+    submit = st.form_submit_button("🚀 Predict Loan Status")
+
+# ---------- RESET ----------
+if st.button("🔄 Reset Form"):
+    st.experimental_rerun()
+
+# ---------- PREDICTION ----------
+if submit:
 
     input_df = pd.DataFrame([{
         "no_of_dependents": no_of_dependents,
@@ -46,27 +73,32 @@ if st.button("🚀 Predict Loan Status"):
     }])
 
     pred = model.predict(input_df)[0]
-    proba = model.predict_proba(input_df)[0][1]
 
-    st.subheader("📊 Result")
+    try:
+        prob = model.predict_proba(input_df)[0][1]
+    except:
+        prob = 0.5
 
-    if pred == "Approved":
-        st.success("✅ Loan Approved")
+    risk_score = prob * 100
+
+    st.markdown("---")
+    st.markdown("## 📊 AI Decision Report")
+
+    st.markdown("### 📈 Risk Probability")
+    st.progress(int(risk_score))
+    st.metric("Confidence Score", f"{risk_score:.2f}%")
+
+    if risk_score >= 70:
+        st.success("🟢 LOW RISK CUSTOMER")
+        st.write("✔ Strong financial profile")
+        st.write("✔ High repayment capability")
+
+    elif risk_score >= 40:
+        st.warning("🟡 MEDIUM RISK CUSTOMER")
+        st.write("⚠ Mixed financial signals")
+        st.write("⚠ Manual review recommended")
+
     else:
-        st.error("❌ Loan Rejected")
-
-    st.metric("Approval Probability", f"{round(proba*100,2)} %")
-
-    st.subheader("🧠 Insights")
-
-    if cibil_score < 600:
-        st.warning("⚠ Low CIBIL Score Risk")
-
-    if income_annum < loan_amount:
-        st.warning("⚠ High Loan-to-Income Ratio")
-
-    if loan_term > 20:
-        st.info("ℹ Long-term loan increases risk")
-
-    if cibil_score > 750:
-        st.success("✔ Strong credit profile")
+        st.error("🔴 HIGH RISK CUSTOMER")
+        st.write("❌ High default probability")
+        st.write("❌ Weak financial profile")
