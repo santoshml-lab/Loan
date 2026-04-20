@@ -104,19 +104,15 @@ if submit:
         st.error("🔴 HIGH RISK CUSTOMER")
         st.write("❌ High default probability")
         st.write("❌ Weak financial profile")
-        st.markdown("## 🧠 Why this prediction? (SHAP)")
+        
 
-try:
-    explainer = shap.Explainer(model)
-    shap_values = explainer(input_df)
 
-    st.write("Feature impact visualization:")
+    
+    
 
-    shap.plots.waterfall(shap_values[0], show=False)
-    st.pyplot()
+    
 
-except:
-    st.warning("SHAP explanation not available for this model type")
+    
         
         
     
