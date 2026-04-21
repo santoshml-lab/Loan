@@ -3,8 +3,8 @@ import streamlit as st
 import joblib
 import pandas as pd
 
-import shap
-import numpy as np
+
+
 # ---------- CONFIG ----------
 st.set_page_config(
     page_title="Loan AI Pro",
