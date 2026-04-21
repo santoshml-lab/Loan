@@ -5,7 +5,7 @@ An end-to-end Machine Learning powered **Loan Risk & Decision Engine** that eval
 ---
 
 ## 🚀 Live Demo
-🔗 (Add your Streamlit live link here)
+https://k4xhu9dccczizmzuoysnup.streamlit.app/
 
 ---
 
